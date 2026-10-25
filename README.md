@@ -24,6 +24,42 @@
 
 ### Задание 1
 
+Содержимое [Dockerfile.python](https://github.com/PozdnikinEugene/05-virt-04-docker-in-practice-fork/blob/main/Dockerfile.python)
+```
+# Stage 1: Build stage
+FROM python:3.12-slim AS builder
+WORKDIR /app
+COPY requirements.txt .
+# Создаем виртуальное окружение и устанавливаем зависимости туда
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Final stage
+FROM python:3.12-slim
+WORKDIR /app
+# Копируем созданное виртуальное окружение целиком
+COPY --from=builder /opt/venv /opt/venv
+COPY . .
+# Добавляем путь к бинарникам venv в PATH, чтобы uvicorn вызывался напрямую
+ENV PATH="/opt/venv/bin:$PATH"
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
+```
+Сборка контейнера
+
+```
+docker build -f Dockerfile.python -t my-python-app:latest .
+```
+Запуск
+
+```
+docker run -d -p 5000:5000 --name my-python-container my-python-app:latest
+```
+Проверка 
+```
+docker logs my-python-container
+```
+Вывод консоли
+
 ![1](img/1-1.png)
 
 
