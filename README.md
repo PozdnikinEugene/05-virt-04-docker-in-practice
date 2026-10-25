@@ -128,7 +128,7 @@ docker compose down
 curl -L http://127.0.0.1:8090
 ```
 Вывод консоли
-![4-2](img/4-2.png)
+![4-2](img/4-2-2.png)
 
 Захожу на сайт проверки `https://check-host.net/check-http` b и указываю свой адрес `http://178.154.249.231:8090/`
 ![4-3](img/4-3.png)
