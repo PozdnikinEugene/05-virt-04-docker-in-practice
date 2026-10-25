@@ -23,8 +23,7 @@
 ---
 
 ### Задание 0
-Проверяю нужные версии
-
+Проверяю нужные версии Docker - `docker version` и `docker compose version`
 ![0](img/0-1.png)
 ### Задание 1
 
