@@ -49,10 +49,10 @@ COPY . .
 ENV PATH="/opt/venv/bin:$PATH"
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
 
+```
+
 Файл [.dockerignore](https://github.com/PozdnikinEugene/05-virt-04-docker-in-practice-fork/blob/main/.dockerignore)
 Файл [.gitignore](https://github.com/PozdnikinEugene/05-virt-04-docker-in-practice-fork/blob/main/.gitignore)
-
-```
 Сборка контейнера
 
 ```
