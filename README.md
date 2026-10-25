@@ -31,12 +31,10 @@
 
 
 ```
-# Stage 1: Build (нужен только если есть C-расширения, которые надо компилировать)
+# Stage 1: Build 
 FROM python:3.12.4-slim AS builder
 WORKDIR /build
 COPY requirements.txt .
-# Тут можно ставить build-зависимости (gcc, libpq-dev и т. п.)
-# RUN apt-get update && apt-get install -y --no-install-recommends build-essential libpq-dev && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Final
