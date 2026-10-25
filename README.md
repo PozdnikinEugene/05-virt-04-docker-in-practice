@@ -145,4 +145,60 @@ docker exec -ti app-db-1 sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "USE vi
 
 [Ссылка на fork](https://github.com/PozdnikinEugene/05-virt-04-docker-in-practice-fork.git)
 
-### Задание 4
+### Задание 6
+Запускаю `dive hashicorp/terraform:latest` 
+
+![6-1](img/6-1.png)
+
+В зависимости от формата хранения Docker структура каталогов может различаться. Обычно tar-архив слоя находится в подкаталоге с именем, соответствующим ID слоя (или в blobs/sha256/, если используется формат OCI).
+
+- Если структура старая (именованные каталоги): войдите в каталог, имя которого совпадает с ID слоя, найденным на шаге 2 (ID может быть усечён), и распакуйте находящийся там layer.tar.
+
+- Если структура OCI (blobs): tar-файл слоя может находиться в blobs/sha256/, имя файла может не совпадать с ID, отображаемым в dive (потому что dive показывает chainID или дифф-ID). В этом случае проще всего использовать grep или find для перебора всех файлов слоёв и поиска файла, содержащего bin/terraform.
+
+У меня слой `Digest: sha256:23b48075bcd290081d5e463ad4314161cd1376c5f16ddf53c3432cc9a5b082f9` и он не совпадает с содержимым слоев образа.
+
+
+ ```
+root@compute-vm-2-2-20-hdd-1792826800531:/home/eugene# docker save -o terraform-image.tar hashicorp/terraform:latest
+root@compute-vm-2-2-20-hdd-1792826800531:/home/eugene# mkdir -p terraform-extract
+root@compute-vm-2-2-20-hdd-1792826800531:/home/eugene# tar -xf terraform-image.tar -C terraform-extract
+root@compute-vm-2-2-20-hdd-1792826800531:/home/eugene# ls -lah terraform-extract/blobs/sha256/
+total 51M
+drwxr-xr-x 2 root root 4.0K Jan  1  1970 .
+drwxr-xr-x 3 root root 4.0K Jan  1  1970 ..
+-r--r--r-- 1 root root 2.1K Jan  1  1970 35b935f050741b78388e7c1886042712e181eaebac8d4338fc1a0f14bb7c705f
+-r--r--r-- 1 root root 1.2K Jan  1  1970 4d1b496a256f2989bccdb04b9104a4ede97234b10fba90259e173e905ec4fb58
+-r--r--r-- 1 root root 3.8M Jan  1  1970 4fdc56a1d49fc749f4b6d53e468a046cd1a019e7b108b1e5c954a43548e3997d
+-r--r--r-- 1 root root  38M Jan  1  1970 8849370588e7f05c63a1a5b4cbaa50170be2876b00f7da05a6b9d17fe3d4f654
+-r--r--r-- 1 root root  918 Jan  1  1970 a73003e3006f4e64e9da0b4362011250b09f096f9a27261435aff45bd54e2d63
+-r--r--r-- 1 root root 4.2K Jan  1  1970 abe496ffdc71367ed111b951e67566d8cf82e15278a78c8ddcb4c7b95a885f82
+-r--r--r-- 1 root root 9.2M Jan  1  1970 ea85abb46697a3476962322431521a37c447c0a453d7447e1b1bfd3f3f2fdce3
+``` 
+![6-1-1](img/6-1-1.png) 
+
+Поскольку dive показывает ID как blobs, мы не можем просто зайти в папку по имени. Нам нужно распаковать все блобы и найти файл.
+Распаковываем все слои в одну папку 
+
+```
+mkdir -p extracted
+for f in blobs/sha256/*; do
+  tar -xf "$f" -C extracted 2>/dev/null
+done
+```
+Ищем файл,  копируем его на уровень выше и возвращаемся в домашнюю директорию
+
+```
+find extracted -name terraform -type f
+cp extracted/bin/terraform ../terraform
+cd ..
+```
+Делаем исполняемым (на всякий случай) Проверяем тип файла и запускаем
+```
+chmod +x terraform
+file terraform
+ ./terraform version
+```
+
+![6-2](img/6-2.png)
+
