@@ -31,23 +31,22 @@
 
 
 ```
-# Stage 1: Build stage
-FROM python:3.12-slim AS builder
+# Stage 1: Build (нужен только если есть C-расширения, которые надо компилировать)
+FROM python:3.12.4-slim AS builder
+WORKDIR /build
+COPY requirements.txt .
+# Тут можно ставить build-зависимости (gcc, libpq-dev и т. п.)
+# RUN apt-get update && apt-get install -y --no-install-recommends build-essential libpq-dev && rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Final
+FROM python:3.12.4-slim
 WORKDIR /app
 COPY requirements.txt .
-# Создаем виртуальное окружение и устанавливаем зависимости туда
-RUN python -m venv /opt/venv && \
-    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
-
-# Stage 2: Final stage
-FROM python:3.12-slim
-WORKDIR /app
-# Копируем созданное виртуальное окружение целиком
-COPY --from=builder /opt/venv /opt/venv
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-# Добавляем путь к бинарникам venv в PATH, чтобы uvicorn вызывался напрямую
-ENV PATH="/opt/venv/bin:$PATH"
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
+
 
 ```
 
